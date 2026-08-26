@@ -17,6 +17,8 @@
   --accent-2: #34e0a1;
   --danger: #ff6b6b;
   --radius: 12px;
+  /* Buy Me a Coffee's brand yellow — only used on the support widget's cup. */
+  --bmc: #ffdd00;
 }
 
 * { box-sizing: border-box; }
@@ -259,6 +261,77 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent);
 
 .app-footer { margin-top: 34px; text-align: center; color: var(--muted); font-size: 0.76rem; }
 .app-footer p { margin: 0; }
+
+/* ── Unterstützen ──────────────────────────────────────────────── */
+.bmc-fab {
+  position: fixed;
+  right: 20px;
+  /* Keep clear of the home indicator on iOS, where the bottom inset is not 0. */
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  /* Opaque enough that page content scrolling underneath stays out of the label. */
+  background: rgba(20,21,27,0.82);
+  border: 1px solid var(--panel-border);
+  backdrop-filter: blur(20px);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease,
+              transform 0.15s ease, box-shadow 0.15s ease;
+}
+/* The class is the selector, but any svg in here gets the size: an index.html
+   cached from before the pill existed has no .bmc-cup, and an unsized inline SVG
+   either collapses or fills the button. */
+.bmc-fab svg { flex: none; width: 18px; height: 18px; color: var(--bmc); }
+
+/* The space before the label lives on the label, not as a gap on the button.
+   A gap is reserved even when the label is empty or absent — which pushes a
+   lone cup off centre by half of it — while a margin disappears with it. */
+.bmc-fab-label:not(:empty) { margin-left: 8px; }
+
+.bmc-fab:hover {
+  color: var(--text);
+  border-color: rgba(255,221,0,0.45);
+  background: rgba(30,27,12,0.88);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+}
+.bmc-fab:active { transform: translateY(0); }
+.bmc-fab:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
+/* Single-column layout: the controls span the full width, so a viewport-fixed
+   button would sit on top of them — over the export buttons and the last slider,
+   far enough to hide a focused control (WCAG 2.4.11). Anchor it to the end of
+   the page instead: same button, just not hovering over the form. */
+@media (max-width: 900px) {
+  body { position: relative; }
+  .bmc-fab { position: absolute; bottom: 20px; }
+}
+
+/* Narrow screens: smaller, and tucked in tighter. */
+@media (max-width: 480px) {
+  .bmc-fab {
+    right: 14px;
+    bottom: 14px;
+    padding: 8px 12px;
+    font-size: 0.74rem;
+  }
+  .bmc-fab svg { width: 16px; height: 16px; }
+  .bmc-fab-label:not(:empty) { margin-left: 7px; }
+}
+
+@media (forced-colors: active) {
+  .bmc-fab { border: 1px solid ButtonBorder; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }

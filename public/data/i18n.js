@@ -141,6 +141,8 @@ export const TRANSLATIONS = {
     emptyTitle: 'Noch keine Daten',
     emptyHint: 'Text einfügen, CSV ablegen oder Beispieldaten laden.',
     footerPrivacy: 'Alles läuft lokal im Browser. Es werden keine Daten übertragen.',
+    bmcLabel: 'Spendier mir einen Kaffee',
+    bmcNewTab: '(öffnet in neuem Tab)',
 
     statusPlaced: '{placed} von {total} Begriffen platziert',
     statusUnplaced: '{n} passten nicht — Schrift verkleinern, Abstand verringern oder Form wechseln.',
@@ -299,6 +301,8 @@ export const TRANSLATIONS = {
     emptyTitle: 'No data yet',
     emptyHint: 'Paste text, drop a CSV, or load the sample data.',
     footerPrivacy: 'Everything runs locally in your browser. No data is transmitted.',
+    bmcLabel: 'Buy me a coffee',
+    bmcNewTab: '(opens in a new tab)',
 
     statusPlaced: '{placed} of {total} terms placed',
     statusUnplaced: '{n} did not fit — shrink the type, reduce spacing, or change the shape.',

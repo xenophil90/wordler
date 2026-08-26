@@ -16,6 +16,14 @@ export function t(key, params) {
 
 export const currentLang = () => lang;
 
+/**
+ * Kennt überhaupt eine Tabelle diesen Schlüssel? Nur dann darf ein Text im
+ * Markup überschrieben werden: sonst stünde bei einem veralteten, aus dem Cache
+ * geladenen i18n.js der Schlüsselname selbst auf der Seite, statt dass der im
+ * HTML hinterlegte Text stehen bleibt.
+ */
+const knownKey = (key) => key in (TRANSLATIONS[lang] || {}) || key in TRANSLATIONS.de;
+
 export function detectInitialLang() {
   try {
     const saved = localStorage.getItem(LANG_KEY);
@@ -27,9 +35,15 @@ export function detectInitialLang() {
 export function applyLanguage(next, onApplied) {
   lang = TRANSLATIONS[next] ? next : 'de';
   document.documentElement.lang = lang;
-  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
-  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
-  document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel)); });
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    if (knownKey(el.dataset.i18n)) el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    if (knownKey(el.dataset.i18nPlaceholder)) el.placeholder = t(el.dataset.i18nPlaceholder);
+  });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+    if (knownKey(el.dataset.i18nAriaLabel)) el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
+  });
   try { localStorage.setItem(LANG_KEY, lang); } catch { /* egal */ }
   if (onApplied) onApplied();
 }
