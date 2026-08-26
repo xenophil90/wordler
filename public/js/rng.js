@@ -1,5 +1,5 @@
-// Deterministischer Zufall: gleicher Seed → gleiche Wolke. Ohne das wäre jede
-// Vorschau ein Unikat und "genau dieses Bild nochmal" unmöglich.
+// Deterministic randomness: same seed → same cloud. Without it every preview
+// would be a one-off and "that exact picture again" impossible.
 export function hashSeed(str) {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < str.length; i++) {

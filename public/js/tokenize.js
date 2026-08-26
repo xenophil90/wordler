@@ -1,7 +1,7 @@
 import { STOPWORDS } from '../data/stopwords.js';
 
-// Satzgrenzen: N-Gramme dürfen nicht über sie hinweg gebildet werden, sonst
-// entstehen Wortpaare, die im Text nie zusammen standen.
+// Sentence boundaries: n-grams must not be formed across them, or the result
+// holds word pairs that never stood together in the text.
 const SENTENCE_BREAK = /[.!?;:\n\r]+/;
 const WORD = /[\p{L}\p{N}][\p{L}\p{N}'’\-_]*/gu;
 
@@ -22,8 +22,8 @@ export function tokenize(text, opts) {
     .forEach((w) => stop.add(w));
 
   const counts = new Map();
-  // Die häufigste Originalschreibweise gewinnt später die Anzeige, damit aus
-  // "Bericht"/"bericht" ein Begriff wird, der trotzdem korrekt aussieht.
+  // The most frequent original spelling wins the display, so that "Report" and
+  // "report" become one term that still looks right.
   const surface = new Map();
 
   const add = (key, shown) => {

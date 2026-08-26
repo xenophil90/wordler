@@ -1,15 +1,15 @@
-// Formmasken. Eine Maske ist ein Raster über der Zeichenfläche: 1 = gesperrt.
-// Alles außerhalb der Form wird vorab gesperrt, dann prüft der Layout-Algorithmus
-// Kollision und Formtreue in einem einzigen Test.
+// Shape masks. A mask is a grid over the drawing area: 1 = taken. Everything
+// outside the shape is marked as taken up front, so the layout algorithm tests
+// collision and staying inside the shape in one go.
 
 export const SHAPES = ['rect', 'ellipse', 'circle', 'heart', 'star', 'diamond', 'arch'];
 
-// Normalisierte Koordinaten: x, y ∈ [-1, 1], Ursprung in der Mitte.
+// Normalised coordinates: x, y ∈ [-1, 1], origin at the centre.
 const TESTS = {
   rect: () => true,
   ellipse: (x, y) => x * x + y * y <= 1,
   circle: (x, y, ar) => {
-    // Kreis statt Ellipse: die längere Achse wird auf die kürzere gestaucht.
+    // A circle rather than an ellipse: the longer axis is squeezed onto the shorter.
     const sx = ar >= 1 ? x * ar : x;
     const sy = ar >= 1 ? y : y / ar;
     return sx * sx + sy * sy <= 1;
@@ -25,7 +25,7 @@ const TESTS = {
     const r = Math.hypot(x, y);
     if (r > 1) return false;
     const theta = Math.atan2(y, x) + Math.PI / 2;
-    // Fünfzackiger Stern als radiale Wellenfunktion — billiger als ein Polygontest.
+    // Five-pointed star as a radial wave function — cheaper than a polygon test.
     const n = 5;
     const seg = ((theta % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
     const phase = Math.abs(((seg * n) / (2 * Math.PI)) % 1 - 0.5) * 2;
@@ -33,7 +33,7 @@ const TESTS = {
     return r <= inner + (1 - inner) * Math.pow(phase, 1.6);
   },
   arch: (x, y) => {
-    // Halbrund oben, gerade unten — gute Form für Titelgrafiken.
+    // Round on top, flat at the bottom — a good shape for title graphics.
     if (y > 0) return Math.abs(x) <= 1;
     return x * x + y * y * 1.6 <= 1;
   },
@@ -58,7 +58,7 @@ export function buildMask({ width, height, cell, shape = 'rect', imageMask = nul
     const ny = ((gy + 0.5) * cell / height) * 2 - 1;
     for (let gx = 0; gx < gw; gx++) {
       const nx = ((gx + 0.5) * cell / width) * 2 - 1;
-      // Kleiner Rand, damit Buchstaben nicht am Bildrand kleben.
+      // A small inset, so letters do not cling to the edge of the picture.
       if (!test(nx * 1.02, ny * 1.02, ar)) data[gy * gw + gx] = 1;
     }
   }
@@ -66,12 +66,12 @@ export function buildMask({ width, height, cell, shape = 'rect', imageMask = nul
 }
 
 /**
- * Baut aus einem Bild eine Maske: dunkle bzw. deckende Pixel sind erlaubt.
+ * Builds a mask from an image: dark, opaque pixels are the allowed area.
  * @param {{width:number,height:number,data:Uint8ClampedArray,invert:boolean,threshold:number}} img
  */
 function stampImageMask(data, gw, gh, img) {
   const { width: iw, height: ih, data: px, invert, threshold } = img;
-  // Bild proportional in die Fläche einpassen (contain), Rest sperren.
+  // Fit the image into the area proportionally (contain); block the rest.
   const scale = Math.min(gw / iw, gh / ih);
   const dw = iw * scale;
   const dh = ih * scale;
@@ -85,7 +85,7 @@ function stampImageMask(data, gw, gh, img) {
       const i = (sy * iw + sx) * 4;
       const alpha = px[i + 3] / 255;
       const lum = (0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]) / 255;
-      // Transparent zählt als hell, sonst wären PNGs mit Alpha immer voll belegt.
+      // Transparent counts as light, or a PNG with alpha would always be fully taken.
       const value = alpha < 0.5 ? 1 : lum;
       const solid = invert ? value > threshold : value < threshold;
       if (!solid) data[gy * gw + gx] = 1;
@@ -93,7 +93,7 @@ function stampImageMask(data, gw, gh, img) {
   }
 }
 
-/** Anteil der freien Fläche — nur für die Anzeige "Füllgrad". */
+/** Share of the area still free — only used to report how full a mask is. */
 export function freeRatio(mask) {
   let free = 0;
   for (let i = 0; i < mask.data.length; i++) if (!mask.data[i]) free++;

@@ -1,9 +1,9 @@
 import { makeRng } from './rng.js';
 
-// Spiral-Platzierung mit Bitmasken, angelehnt an das Verfahren von d3-cloud,
-// aber eigenständig: pro Begriff entsteht ein Sprite, dessen Deckung gegen ein
-// gemeinsames Belegungsraster geprüft wird. Der Mindestabstand wird als
-// Kontur (strokeText) in das Sprite eingebacken, statt später addiert zu werden.
+// Spiral placement with bitmap masks, along the lines of what d3-cloud does but
+// written here: each term becomes a sprite whose coverage is tested against a
+// shared occupancy grid. The minimum spacing is baked into the sprite as an
+// outline (strokeText) rather than added afterwards.
 
 const ROTATIONS = {
   none: () => 0,
@@ -38,8 +38,8 @@ function buildSprite(scratch, text, fontSize, angle, padding, fontSpec, cell) {
   const h = Math.max(asc + desc, fontSize);
   const cos = Math.abs(Math.cos(angle));
   const sin = Math.abs(Math.sin(angle));
-  // Grosszügiger Rand: die Maske entsteht aus echten Pixeln, überzähliger
-  // Platz kostet nur leere Zellen, zu wenig Platz würde Buchstaben abschneiden.
+  // A generous margin: the mask is built from real pixels, so spare room costs
+  // nothing but empty cells while too little would clip the letters.
   const margin = padding + fontSize * 0.35 + 4;
   const cw = Math.ceil(w * cos + h * sin + margin * 2);
   const ch = Math.ceil(w * sin + h * cos + margin * 2);
@@ -121,9 +121,9 @@ function fillRatio(placed, area) {
 }
 
 /**
- * Sucht den größten Maßstab, bei dem noch alle Begriffe passen. Ohne diese
- * Suche hinge das Ergebnis an den absoluten Schriftgrößen: dieselbe Einstellung
- * ergäbe bei 14 Begriffen eine überfüllte und bei 200 eine verlorene Wolke.
+ * Searches for the largest scale at which every term still fits. Without that
+ * search the result would hang on the absolute type sizes: one and the same
+ * setting would give an overcrowded cloud at 14 terms and a lost one at 200.
  */
 export function layoutCloud(terms, opts) {
   const scratch = makeScratch();
@@ -131,11 +131,11 @@ export function layoutCloud(terms, opts) {
     return recentre({ ...runPass(scratch, terms, opts, 1), scale: 1 }, opts);
   }
 
-  let lo = 0;        // größter Maßstab, bei dem alles passte
-  let hi = Infinity; // kleinster Maßstab, bei dem etwas fehlte
+  let lo = 0;        // largest scale at which everything fitted
+  let hi = Infinity; // smallest scale at which something was left out
   let scale = 1;
-  let best = null;     // vollständige Wolke, möglichst groß
-  let fallback = null; // falls nie alles passt: die vollste Wolke
+  let best = null;     // a complete cloud, as large as it will go
+  let fallback = null; // if it never all fits: the fullest cloud there was
 
   for (let attempt = 0; attempt < 8; attempt++) {
     const result = runPass(scratch, terms, opts, scale);
@@ -154,8 +154,8 @@ export function layoutCloud(terms, opts) {
     const fill = fillRatio(result.placed, opts.area);
     if (fill > 0.9) break;
     lo = scale;
-    // Der Zielfüllgrad liegt bei ~95 %; der Sprung wird gedeckelt, damit ein
-    // sehr leeres Zwischenergebnis nicht über das Ziel hinausschießt.
+    // The target fill is ~95 %; the jump is capped so that a very empty
+    // intermediate result does not overshoot it.
     const grow = Math.min(1.6, 0.95 / Math.max(fill, 0.15));
     const next = Math.min(isFinite(hi) ? hi * 0.98 : Infinity, scale * grow);
     if (next <= scale * 1.02) break;
@@ -165,10 +165,10 @@ export function layoutCloud(terms, opts) {
 }
 
 /**
- * Verschiebt die fertige Wolke so, dass ihr Umriss mittig in der Fläche sitzt.
- * Die Spirale startet zwar in der Mitte, endet aber je nach Wortbreiten schief.
- * Nur bei der Rechteckform erlaubt: bei einer Maske würde jede Verschiebung die
- * Wörter aus der Form heraustragen.
+ * Shifts the finished cloud so that its outline sits centred in the area. The
+ * spiral does start at the centre, but depending on the word widths it ends up
+ * lopsided. Allowed for the rectangle only: with a mask, any shift would carry
+ * the words out of the shape.
  */
 function recentre(result, opts) {
   if (!opts.recentre || !result || !result.placed.length) return result;
@@ -204,8 +204,8 @@ function runPass(scratch, terms, opts, scale) {
     const angle = rotate(rng);
     const sprite = buildSprite(scratch, text, fontSize, angle, padding, font, cell);
 
-    // Jeder Begriff startet leicht versetzt, sonst legen sich gleich große
-    // Wörter in sichtbaren Ringen um die Mitte.
+    // Each term starts slightly offset, or words of equal size arrange
+    // themselves into visible rings around the centre.
     const startTheta = rng() * Math.PI * 2;
     const jitterX = (rng() - 0.5) * area.w * 0.04;
     const jitterY = (rng() - 0.5) * area.h * 0.04;
@@ -215,8 +215,8 @@ function runPass(scratch, terms, opts, scale) {
       const theta = startTheta + step * 0.12;
       const r = 0.35 * (theta - startTheta);
       if (r > maxRadius) break;
-      // Elliptische Spirale: sie dehnt sich entlang der längeren Kante, damit
-      // breite Formate nicht mit einem runden Fleck in der Mitte enden.
+      // An elliptical spiral: it stretches along the longer edge, so that wide
+      // formats do not end up as a round blob in the middle.
       const cx = centreX + jitterX + r * cell * Math.cos(theta) * (aspect >= 1 ? aspect : 1);
       const cy = centreY + jitterY + r * cell * Math.sin(theta) * (aspect < 1 ? 1 / aspect : 1);
       const ox = Math.round((cx - sprite.cw / 2) / cell);

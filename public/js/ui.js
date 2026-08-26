@@ -17,10 +17,9 @@ export function t(key, params) {
 export const currentLang = () => lang;
 
 /**
- * Kennt überhaupt eine Tabelle diesen Schlüssel? Nur dann darf ein Text im
- * Markup überschrieben werden: sonst stünde bei einem veralteten, aus dem Cache
- * geladenen i18n.js der Schlüsselname selbst auf der Seite, statt dass der im
- * HTML hinterlegte Text stehen bleibt.
+ * Does either table know this key at all? Only then may text in the markup be
+ * overwritten: otherwise a stale i18n.js served from cache would print the key
+ * name itself onto the page instead of leaving the HTML's own text in place.
  */
 const knownKey = (key) => key in (TRANSLATIONS[lang] || {}) || key in TRANSLATIONS.de;
 
@@ -28,7 +27,7 @@ export function detectInitialLang() {
   try {
     const saved = localStorage.getItem(LANG_KEY);
     if (saved && TRANSLATIONS[saved]) return saved;
-  } catch { /* localStorage nicht verfügbar */ }
+  } catch { /* localStorage unavailable */ }
   return (navigator.language || 'de').toLowerCase().startsWith('de') ? 'de' : 'en';
 }
 
@@ -44,7 +43,7 @@ export function applyLanguage(next, onApplied) {
   document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
     if (knownKey(el.dataset.i18nAriaLabel)) el.setAttribute('aria-label', t(el.dataset.i18nAriaLabel));
   });
-  try { localStorage.setItem(LANG_KEY, lang); } catch { /* egal */ }
+  try { localStorage.setItem(LANG_KEY, lang); } catch { /* not worth failing over */ }
   if (onApplied) onApplied();
 }
 
@@ -90,7 +89,7 @@ export function initLangSwitch(onChange) {
   return { select: (value) => pick(value) };
 }
 
-/** Radiogroup aus Buttons — Pfeiltasten inklusive, wie von einer Radiogruppe erwartet. */
+/** A radiogroup built from buttons — arrow keys included, as a radiogroup owes you. */
 export function bindSegmented(id, initial, onChange) {
   const group = $(id);
   const buttons = [...group.querySelectorAll('.segmented-btn')];
@@ -158,14 +157,14 @@ export function bindDropzone(zoneId, inputId, onFile) {
   });
   input.addEventListener('change', () => {
     if (input.files?.[0]) onFile(input.files[0]);
-    // Zurücksetzen, damit dieselbe Datei zweimal hintereinander funktioniert.
+    // Reset, so picking the same file twice in a row still fires.
     input.value = '';
   });
 }
 
 export const show = (el, visible) => el.classList.toggle('hidden', !visible);
 
-/** Ereignisse zusammenfassen: ein Regler feuert sonst pro Pixel ein Neulayout. */
+/** Coalesce events: otherwise a slider triggers a re-layout for every pixel. */
 export function debounce(fn, ms) {
   let handle = 0;
   return (...args) => {

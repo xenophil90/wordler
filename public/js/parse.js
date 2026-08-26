@@ -1,5 +1,5 @@
-// CSV-/TSV-Zerlegung. Bewusst eigenhändig statt Bibliothek: das Format ist
-// klein, die Fehlermeldungen sollen aber in der Sprache der App sprechen.
+// CSV/TSV splitting. Hand-written rather than a library on purpose: the format
+// is small, but the error messages have to speak the language of the app.
 
 const DELIMITERS = [',', ';', '\t', '|'];
 
@@ -8,7 +8,7 @@ export function detectDelimiter(text) {
   let best = ',';
   let bestCount = 0;
   for (const d of DELIMITERS) {
-    // Trennzeichen innerhalb von Anführungszeichen zählen nicht mit.
+    // Delimiters inside quotes do not count.
     const count = splitLine(line, d).length - 1;
     if (count > bestCount) { best = d; bestCount = count; }
   }
@@ -47,8 +47,8 @@ export function parseTable(text, delimiter = detectDelimiter(text)) {
   const width = Math.max(...rows.map((r) => r.length));
   for (const r of rows) while (r.length < width) r.push('');
 
-  // Kopfzeile erkennen: die erste Zeile gilt als Kopf, wenn in ihr weniger
-  // Zahlen stehen als im Durchschnitt der folgenden Zeilen.
+  // Detect the header: the first row counts as one when it holds fewer numbers
+  // than the rows below it do on average.
   const numericCount = (row) => row.filter((c) => isNumeric(c)).length;
   const first = numericCount(rows[0]);
   const rest = rows.slice(1);
@@ -67,7 +67,7 @@ export function isNumeric(value) {
   if (typeof value !== 'string') return typeof value === 'number' && isFinite(value);
   const v = value.trim().replace(/\s/g, '');
   if (!v) return false;
-  // Deutsche Schreibweise (1.234,56) genauso akzeptieren wie die englische.
+  // Accept the German notation (1.234,56) as readily as the English one.
   return !Number.isNaN(toNumber(v));
 }
 
@@ -85,7 +85,7 @@ export function toNumber(value) {
   return Number(v);
 }
 
-/** Heuristik für die Vorbelegung der Spaltenzuordnung. */
+/** Heuristic that pre-fills the column mapping. */
 export function guessColumns({ headers, rows }) {
   const cols = headers.map((_, i) => i);
   const numeric = cols.filter((i) => rows.length && rows.every((r) => !r[i] || isNumeric(r[i])) && rows.some((r) => isNumeric(r[i])));
@@ -106,7 +106,7 @@ export function rowsToTerms({ rows }, mapping) {
     if (!label) continue;
     const count = mapping.count >= 0 && isNumeric(row[mapping.count]) ? toNumber(row[mapping.count]) : 1;
     const weight = mapping.weight >= 0 && isNumeric(row[mapping.weight]) ? toNumber(row[mapping.weight]) : count;
-    // Doppelte Begriffe summieren statt zweimal zu zeichnen.
+    // Sum duplicate terms rather than drawing them twice.
     if (seen.has(label)) {
       const t = seen.get(label);
       t.count += count;

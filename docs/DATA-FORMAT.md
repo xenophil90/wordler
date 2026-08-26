@@ -1,9 +1,9 @@
-# Datenformat
+# Data format
 
-wordler verarbeitet zwei Eingabearten. Beide landen intern in derselben Struktur:
-ein Begriff, eine Häufigkeit, ein Gewicht.
+wordler takes two kinds of input. Both end up in the same internal structure:
+a term, a count, a weight.
 
-## Tabelle (CSV / TSV)
+## Table (CSV / TSV)
 
 ```csv
 Topic,Count,Weight
@@ -14,53 +14,52 @@ Reporting,7,82
 Automation,6,84
 ```
 
-| Spalte | Bedeutung | Pflicht |
+| Column | Meaning | Required |
 | --- | --- | --- |
-| Begriff | Der Text, der in der Wolke steht | ja |
-| Häufigkeit | Wie oft der Begriff aufgetaucht ist | nein (Vorgabe 1) |
-| Gewicht | Wie wichtig er ist, unabhängig von der Häufigkeit | nein (Vorgabe = Häufigkeit) |
+| Term | The text that appears in the cloud | yes |
+| Count | How often the term came up | no (defaults to 1) |
+| Weight | How much it matters, independent of the count | no (defaults to the count) |
 
-**Erkannt wird automatisch:**
+**Detected automatically:**
 
-- Trennzeichen: `,` `;` Tabulator `|`
-- Kopfzeile: vorhanden, wenn die erste Zeile weniger Zahlen enthält als die folgenden
-- Zahlenformat: `1234.5` und `1.234,5` werden beide gelesen, `%` und Leerzeichen ignoriert
-- Spaltenzuordnung: erste Textspalte → Begriff, erste Zahlenspalte → Häufigkeit,
-  zweite Zahlenspalte → Gewicht
+- Delimiter: `,` `;` tab `|`
+- Header row: present when the first row holds fewer numbers than the rows below it
+- Number format: `1234.5` and `1.234,5` are both read; `%` and spaces are ignored
+- Column mapping: first text column → term, first numeric column → count,
+  second numeric column → weight
 
-Alles davon ist nach dem Import über drei Auswahlfelder änderbar. Spaltennamen spielen
-keine Rolle — nur die Zuordnung zählt. Doppelte Begriffe werden zusammengefasst:
-Häufigkeiten addiert, das höhere Gewicht gewinnt.
+All of that can be changed after the import through three select boxes. Column
+names are irrelevant — only the mapping counts. Duplicate terms are merged: counts
+add up, the higher weight wins.
 
-## Freitext
+## Free text
 
-Beliebiger Text. Er wird an Satzgrenzen (`.` `!` `?` `;` `:` Zeilenumbruch) zerlegt,
-dann in Wörter. Wortgruppen (N-Gramme) werden nie über eine Satzgrenze hinweg gebildet.
-Häufigkeit = Anzahl der Vorkommen, Gewicht = Häufigkeit.
+Any text. It is split at sentence boundaries (`.` `!` `?` `;` `:` newline) and then
+into words. Phrases (n-grams) are never formed across a sentence boundary. Count =
+number of occurrences, weight = count.
 
 ## Score
 
 ```
-score = shape( (1 − α) · norm(Häufigkeit) + α · norm(Gewicht) )
-Schriftgröße = kleinste + score · (größte − kleinste)
+score = shape( (1 − α) · norm(count) + α · norm(weight) )
+type size = smallest + score · (largest − smallest)
 ```
 
-`norm` normiert über alle *aktiven* Begriffe auf 0…1 (Min–Max). Abgewählte Begriffe
-fallen vorher heraus und verschieben dadurch die Normierung — das ist Absicht: die
-Wolke soll die Verteilung dessen zeigen, was man tatsächlich sieht.
+`norm` normalises across all *active* terms to 0…1 (min–max). Terms that have been
+switched off drop out beforehand and therefore shift the normalisation — deliberately
+so: the cloud should show the distribution of what you are actually looking at.
 
-`shape` ist die gewählte Skalierung:
+`shape` is the chosen scaling:
 
-| Skalierung | Wirkung |
+| Scaling | Effect |
 | --- | --- |
-| Linear | Bildet die Werte unverändert ab; große Ausreißer dominieren |
-| Wurzel | Dämpft Ausreißer, kleine Begriffe bleiben lesbar (Vorgabe) |
-| Log | Starke Dämpfung, gut bei Verteilungen über mehrere Größenordnungen |
-| Rang | Ignoriert Absolutwerte, nutzt nur die Reihenfolge — gleichmäßige Abstufung |
+| Linear | Maps the values unchanged; large outliers dominate |
+| Square root | Damps outliers, keeps small terms legible (the default) |
+| Log | Strong damping, good for distributions spanning orders of magnitude |
+| Rank | Ignores absolute values and uses the order alone — even steps throughout |
 
-## Anonymisierung
+## Anonymisation
 
-Die mitgelieferten Beispieldaten sind erfunden. Sie bilden nur die *Form* echter
-Themenlisten ab. Da die Anwendung vollständig im Browser läuft, verlassen echte Daten
-das Gerät ohnehin nicht — beim Teilen des fertigen Bildes ist das aber wieder eine
-bewusste Entscheidung.
+The bundled sample data is invented. It only mirrors the *shape* of a real topic
+list. Since the app runs entirely in the browser, real data never leaves the device
+anyway — though sharing the finished picture is a deliberate decision again.

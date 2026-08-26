@@ -1,5 +1,5 @@
-// Aus rohen Zahlen wird eine Schriftgröße. Der Weg dahin steht bewusst an
-// einer Stelle, weil er im UI als Formel angezeigt wird.
+// Raw numbers become a type size. The path from one to the other lives in a
+// single place on purpose, because the interface prints it as a formula.
 
 export const SCALES = ['linear', 'sqrt', 'log', 'rank'];
 
@@ -7,7 +7,7 @@ function normalise(values) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min;
-  // Alle Werte gleich: jeder Begriff bekommt dieselbe Größe statt NaN.
+  // All values equal: every term gets the same size instead of NaN.
   if (!isFinite(span) || span === 0) return values.map(() => 1);
   return values.map((v) => (v - min) / span);
 }
@@ -22,7 +22,7 @@ function shape(value, scale, rank, total) {
 }
 
 /**
- * Ergänzt jeden aktiven Begriff um `score` (0..1) und `fontSize`.
+ * Adds `score` (0..1) and `fontSize` to every active term.
  * @param {{alpha:number, scale:string, minFont:number, maxFont:number}} opts
  */
 export function computeScores(terms, opts) {
@@ -54,7 +54,7 @@ export function computeScores(terms, opts) {
   }).sort((a, b) => b.fontSize - a.fontSize);
 }
 
-/** Die im UI angezeigte Klartext-Formel. */
+/** The plain-language formula shown in the interface. */
 export function formulaText(alpha, scale, t) {
   const a = alpha.toFixed(2);
   const inner = `${(1 - alpha).toFixed(2)} · ${t('fmlCount')} + ${a} · ${t('fmlWeight')}`;

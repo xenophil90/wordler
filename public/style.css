@@ -3,8 +3,8 @@
 @font-face { font-family: 'Inter'; src: url('fonts/Inter-ExtraBold.woff2') format('woff2'); font-weight: 800; font-style: normal; font-display: swap; }
 
 :root {
-  /* Durchgehend dunkles Design. `light dark` würde native Bedienelemente
-     (Regler, Farbwähler, Zahlenfelder) hell auf dunkel zeichnen. */
+  /* The design is dark throughout. Declaring `light dark` made the browser render
+     native widgets (range, colour picker, spinners) light on dark. */
   color-scheme: dark;
   --bg: #08090c;
   --panel: rgba(255,255,255,0.035);
@@ -50,7 +50,7 @@ body {
 
 .app { max-width: 1400px; margin: 0 auto; padding: 28px 20px 60px; }
 
-/* ── Kopfzeile ─────────────────────────────────────────────────── */
+/* ── Header ────────────────────────────────────────────────────── */
 .app-header {
   display: flex; align-items: flex-start; justify-content: space-between;
   gap: 16px; margin-bottom: 26px;
@@ -79,7 +79,7 @@ body {
 .lang-option:hover, .lang-option:focus-visible { background: rgba(124,108,255,0.18); outline: none; }
 .lang-option[aria-selected="true"] { color: var(--accent-2); }
 
-/* ── Grundraster ───────────────────────────────────────────────── */
+/* ── Page grid ─────────────────────────────────────────────────── */
 .layout {
   display: grid;
   grid-template-columns: minmax(320px, 400px) 1fr;
@@ -122,7 +122,7 @@ body {
   border-radius: 8px; padding: 7px 9px;
 }
 
-/* ── Formularelemente ──────────────────────────────────────────── */
+/* ── Form controls ─────────────────────────────────────────────── */
 input[type="text"], input[type="number"], textarea, select {
   width: 100%; padding: 9px 11px;
   background: var(--field-bg); border: 1px solid var(--field-border);
@@ -167,7 +167,7 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent);
 }
 .link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
-/* Segmentierte Auswahl */
+/* Segmented control */
 .segmented {
   display: flex; gap: 4px; padding: 4px;
   background: var(--field-bg); border: 1px solid var(--field-border); border-radius: 10px;
@@ -181,7 +181,7 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent);
 .segmented-btn.is-active { background: var(--accent); color: #fff; }
 .segmented-btn:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 1px; }
 
-/* Schalter */
+/* Toggle switch */
 .switch-row {
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; padding: 7px 0; font-size: 0.82rem;
@@ -200,7 +200,7 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent);
 .switch.is-on::after { transform: translateX(18px); background: var(--accent); }
 .switch:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
 
-/* Ablagefläche */
+/* Drop zone */
 .dropzone {
   position: relative; display: flex; align-items: center; justify-content: center;
   min-height: 66px; padding: 12px; text-align: center;
@@ -216,7 +216,7 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent);
 }
 .file-input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
 
-/* Begriffstabelle */
+/* Terms table */
 .table-wrap { max-height: 320px; overflow: auto; margin-top: 10px; border-radius: 9px; }
 .terms-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
 .terms-table th {
@@ -229,14 +229,14 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent);
 .terms-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .terms-table tr.is-off { color: var(--muted); text-decoration: line-through; }
 
-/* ── Vorschau ──────────────────────────────────────────────────── */
+/* ── Preview ───────────────────────────────────────────────────── */
 .preview { position: sticky; top: 20px; min-width: 0; }
 .preview:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; border-radius: var(--radius); }
 .preview-stage {
   position: relative;
   border: 1px solid var(--panel-border); border-radius: var(--radius);
   overflow: hidden;
-  /* Schachbrett: zeigt an, wo der Hintergrund transparent bleibt. */
+  /* Chequerboard: shows where the background stays transparent. */
   background-color: #101219;
   background-image:
     linear-gradient(45deg, rgba(255,255,255,0.035) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.035) 75%),
@@ -262,7 +262,7 @@ input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--accent);
 .app-footer { margin-top: 34px; text-align: center; color: var(--muted); font-size: 0.76rem; }
 .app-footer p { margin: 0; }
 
-/* ── Unterstützen ──────────────────────────────────────────────── */
+/* ── Support button ────────────────────────────────────────────── */
 .bmc-fab {
   position: fixed;
   right: 20px;

@@ -8,8 +8,8 @@ import { computeFrame, drawCloud, buildSvg, assignColors } from './render.js';
 import { canvasToBlob, svgToBlob, downloadBlob, copyToClipboard, safeFilename } from './exporters.js';
 import { PALETTES, paletteById } from '../data/palettes.js';
 
-// Die Wolke wird immer in "Design-Pixeln" berechnet. Der Export skaliert nur
-// noch die Zeichenoperationen — dadurch ist jede Auflösung dasselbe Bild.
+// The cloud is always computed in "design pixels". The export only scales the
+// drawing operations, which makes every resolution the same picture.
 const BASE_WIDTH = 1600;
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 const MAX_EXPORT_EDGE = 8000;
@@ -39,13 +39,13 @@ const state = {
   format: 'png', scaleFactor: 1, quality: 0.92,
 };
 
-let model = null;   // letztes Layout-Ergebnis, Grundlage für Vorschau und Export
-let terms = [];     // Rohbegriffe vor Gewichtung
+let model = null;   // the last layout result, behind both the preview and the export
+let terms = [];     // raw terms, before weighting
 
 const canvas = $('cloudCanvas');
 const ctx = canvas.getContext('2d');
 
-/* ── Ableitungen ─────────────────────────────────────────────────── */
+/* ── Derived values ──────────────────────────────────────────────── */
 
 const ratioValue = () => {
   const [w, h] = state.ratio.split(':').map(Number);
@@ -72,13 +72,13 @@ function contrastText(bg) {
   const v = bg.replace('#', '');
   const n = v.length === 3 ? v.split('').map((c) => c + c).join('') : v;
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16));
-  // Relative Helligkeit nach WCAG — Titel bleibt lesbar, egal welcher Hintergrund.
+  // Relative luminance per WCAG — the title stays legible on any background.
   const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
   return lum > 0.55 ? '#101114' : '#f5f6f8';
 }
 const mutedOn = (bg) => (contrastText(bg) === '#101114' ? '#5a5f70' : '#9aa0b4');
 
-/* ── Begriffe aufbauen ───────────────────────────────────────────── */
+/* ── Building the terms ──────────────────────────────────────────── */
 
 function buildTerms() {
   if (state.mode === 'csv') {
@@ -101,7 +101,7 @@ function buildTerms() {
   }).map((term) => ({ ...term, enabled: !state.excluded.has(term.label) }));
 }
 
-/* ── Rendern ─────────────────────────────────────────────────────── */
+/* ── Rendering ───────────────────────────────────────────────────── */
 
 function render() {
   clearError();
@@ -130,7 +130,7 @@ function render() {
     ctx.clearRect(0, 0, width, height);
     show($('previewEmpty'), true);
     $('status').textContent = '';
-    // Eingabe da, aber alles weggefiltert: das ist ein Fehler, kein Leerzustand.
+    // Input present but everything filtered out: that is an error, not an empty state.
     if (state.raw.trim() && !$('error').dataset.code) setError('errNoTerms');
     updateExportHint();
     return;
@@ -186,7 +186,7 @@ function render() {
 
 const renderSoon = debounce(render, 130);
 
-/* ── Begriffstabelle ─────────────────────────────────────────────── */
+/* ── Terms table ─────────────────────────────────────────────────── */
 
 function renderTermsTable(scored) {
   const body = $('termsTableBody');
@@ -229,7 +229,7 @@ function cell(text, className) {
 }
 const format = (n) => (Number.isInteger(n) ? String(n) : Number(n).toFixed(1));
 
-/* ── Fehler und Hinweise ─────────────────────────────────────────── */
+/* ── Errors and hints ────────────────────────────────────────────── */
 
 function setError(code) {
   const el = $('error');
@@ -256,7 +256,7 @@ function updateExportHint() {
 function exportScale() {
   const wanted = state.scaleFactor;
   const { width, height } = designSize();
-  // Harte Obergrenze, damit kein Browser beim Export am Speicher scheitert.
+  // A hard ceiling, so no browser runs out of memory on the export.
   return Math.min(wanted, MAX_EXPORT_EDGE / Math.max(width, height));
 }
 
@@ -280,7 +280,7 @@ function updateModeVisibility() {
   $('copyBtn').disabled = state.format === 'svg';
 }
 
-/* ── Dateien ─────────────────────────────────────────────────────── */
+/* ── Files ───────────────────────────────────────────────────────── */
 
 async function readTextFile(file) {
   if (file.size > MAX_FILE_BYTES) throw errorWithCode('errFileTooLarge');
@@ -300,7 +300,7 @@ async function handleDataFile(file) {
   }
 }
 
-/** Text übernehmen — im CSV-Modus zusätzlich zerlegen und Spalten zuordnen. */
+/** Take the text — in CSV mode also split it and map the columns. */
 function ingest(text) {
   state.raw = text;
   if (state.mode === 'csv') {
@@ -345,7 +345,7 @@ async function handleMaskFile(file) {
   clearError();
   try {
     const bitmap = await createImageBitmap(file);
-    // Auf eine Arbeitsgröße herunterrechnen: die Maske braucht keine Details.
+    // Scale down to a working size: the mask needs no detail.
     const scale = Math.min(1, 480 / Math.max(bitmap.width, bitmap.height));
     const w = Math.max(1, Math.round(bitmap.width * scale));
     const h = Math.max(1, Math.round(bitmap.height * scale));
@@ -429,7 +429,7 @@ async function loadPreset(file) {
   }
 }
 
-/* ── Verdrahtung ─────────────────────────────────────────────────── */
+/* ── Wiring ──────────────────────────────────────────────────────── */
 
 const controls = {};
 
@@ -611,7 +611,7 @@ async function loadSample() {
   }
 }
 
-/* ── Start ───────────────────────────────────────────────────────── */
+/* ── Start-up ────────────────────────────────────────────────────── */
 
 async function boot() {
   fillPalettes();
@@ -639,12 +639,12 @@ async function boot() {
   }
   syncControlsFromState();
 
-  // Canvas kann nur mit bereits geladenen Schriften messen — sonst würde die
-  // erste Wolke mit der Ersatzschrift ausgemessen und säße daneben.
+  // A canvas can only measure with fonts that are already loaded — otherwise the
+  // first cloud would be measured in the fallback face and sit wrong.
   try {
     await Promise.all([500, 700, 800].map((w) => document.fonts.load(`${w} 40px Inter`)));
     await document.fonts.ready;
-  } catch { /* Schriftladen nicht verfügbar */ }
+  } catch { /* font loading unavailable */ }
 
   render();
 }

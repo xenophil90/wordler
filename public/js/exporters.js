@@ -1,4 +1,4 @@
-// Ausgabe als Datei. Alles entsteht im Browser, nichts wird hochgeladen.
+// Output as a file. Everything is produced in the browser, nothing is uploaded.
 
 const MIME = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' };
 
@@ -24,7 +24,7 @@ export function downloadBlob(blob, filename) {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  // Erst nach dem Klick freigeben, sonst bricht der Download in Safari ab.
+  // Release only after the click, or Safari aborts the download.
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 

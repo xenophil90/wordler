@@ -1,7 +1,7 @@
 import { makeRng } from './rng.js';
 
-// Canvas und SVG rendern aus derselben Platzierungsliste. Nur so sind Bitmap-
-// und Vektorausgabe garantiert deckungsgleich.
+// Canvas and SVG render from the same placement list. That is the only way the
+// raster and the vector output are guaranteed to match.
 
 const hex = (c) => {
   const v = c.replace('#', '');
@@ -17,7 +17,7 @@ export function mix(a, b, t) {
   return toHex([0, 1, 2].map((i) => A[i] + (B[i] - A[i]) * t));
 }
 
-/** Verlauf über eine ganze Palette; 1 = wichtigster Begriff. */
+/** A ramp across a whole palette; 1 = the most important term. */
 export function sampleRamp(colors, t) {
   if (colors.length === 1) return colors[0];
   const pos = (1 - Math.min(1, Math.max(0, t))) * (colors.length - 1);
@@ -41,8 +41,8 @@ export function assignColors(placed, opts) {
 }
 
 /**
- * Teilt die Zeichenfläche in Textbänder und die Wolkenfläche auf.
- * Beide Renderer benutzen dieselbe Aufteilung.
+ * Splits the drawing area into text bands and the cloud area.
+ * Both renderers use the same split.
  */
 export function computeFrame({ width, height, title, subtitle, source }) {
   const margin = Math.round(width * 0.045);
@@ -128,8 +128,8 @@ export function buildSvg(model, opts) {
   const { width, height, frame, placed } = model;
   const scale = opts.exportScale || 1;
   const parts = [];
-  // Der viewBox bleibt in Design-Einheiten, nur die Ausgabegröße skaliert —
-  // so bleibt der Vektor identisch zum PNG, egal bei welcher Auflösung.
+  // The viewBox stays in design units and only the output size scales, which
+  // keeps the vector identical to the PNG at any resolution.
   parts.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${round(width * scale)}" height="${round(height * scale)}" viewBox="0 0 ${width} ${height}" font-family="${escapeXml(opts.font.family)}">`);
   if (opts.background === 'gradient') {
     parts.push(`<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${opts.bgColor}"/><stop offset="1" stop-color="${opts.bgColor2}"/></linearGradient></defs>`);

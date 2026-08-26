@@ -1,5 +1,5 @@
-// Kuratierte Paletten. Reihenfolge = Verlauf von "wichtig" nach "unwichtig",
-// damit die Farbzuordnung "nach Score" ohne Zusatzlogik funktioniert.
+// Curated palettes. The order is a ramp from "important" to "unimportant", so
+// that colouring by score needs no extra logic.
 export const PALETTES = [
   { id: 'aurora',    name: 'Aurora',        dark: true,  colors: ['#7c6cff', '#8f7bff', '#34e0a1', '#4fd1c5', '#63b3ff', '#a78bfa'] },
   { id: 'ember',     name: 'Ember',         dark: true,  colors: ['#ff6b6b', '#ff8e53', '#ffb347', '#ffd166', '#f4978e', '#e06c75'] },
