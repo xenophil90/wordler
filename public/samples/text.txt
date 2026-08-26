@@ -1,0 +1,11 @@
+A word cloud turns a pile of text into a picture you can read at a glance. The
+bigger a word appears, the more often it showed up, or the more weight someone
+decided it deserves. That second half matters: raw frequency alone flatters
+filler words and buries the terms that actually carry the message.
+
+Word clouds are quick, honest summaries when the words are chosen carefully, and
+decorative noise when they are not. Strip the filler, merge the duplicates, keep
+the terms a reader would recognise, and the cloud starts to say something. Give
+every term a weight next to its count and the cloud starts to argue something.
+
+Text goes in, a picture comes out. The picture is only ever as good as the text.

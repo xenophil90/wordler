@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Word Clouds aus Text oder gewichteten CSV-Daten — komplett im Browser, Export als PNG, JPEG, WebP und SVG.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none';">
+<title>wordler</title>
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="style.css?v=1">
+</head>
+<body>
+<a class="skip-link" href="#preview" data-i18n="skipToPreview">Zur Vorschau springen</a>
+<div class="app">
+
+  <header class="app-header">
+    <div class="brand">
+      <img src="assets/logo.svg" alt="" class="brand-logo" width="40" height="40">
+      <div>
+        <h1>wordler</h1>
+        <p class="subtitle" data-i18n="subtitle">Text oder gewichtete Daten → Word Cloud als Bild</p>
+      </div>
+    </div>
+    <div class="lang-switch">
+      <button type="button" id="langButton" class="lang-button" aria-haspopup="listbox" aria-expanded="false" aria-controls="langMenu">
+        <span class="sr-only" data-i18n="langSelectLabel">Sprache</span>
+        <span id="langButtonLabel" lang="de">Deutsch</span>
+        <svg class="lang-caret" viewBox="0 0 10 6" aria-hidden="true" focusable="false">
+          <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <ul class="lang-menu hidden" id="langMenu" role="listbox" aria-label="Sprache / Language" data-i18n-aria-label="langSelectLabel">
+        <li class="lang-option" role="option" tabindex="-1" data-value="de" lang="de" aria-selected="true">Deutsch</li>
+        <li class="lang-option" role="option" tabindex="-1" data-value="en" lang="en" aria-selected="false">English</li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="controls" aria-label="Einstellungen" data-i18n-aria-label="ariaControls">
+
+      <!-- ─── Quelldaten ─────────────────────────────────────────── -->
+      <div class="panel">
+        <h2 class="panel-title" data-i18n="panelSource">Quelldaten</h2>
+        <div class="segmented" id="modeSegmented" role="radiogroup" data-i18n-aria-label="panelSource">
+          <button type="button" class="segmented-btn" role="radio" aria-checked="true" data-value="text" data-i18n="modeText">Text</button>
+          <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="csv" data-i18n="modeCsv">CSV / Tabelle</button>
+        </div>
+
+        <div class="field">
+          <label for="sourceText" data-i18n="labelSourceText">Eingabe</label>
+          <textarea id="sourceText" rows="7" spellcheck="false" data-i18n-placeholder="placeholderText"></textarea>
+          <p class="hint" id="sourceHint" data-i18n="hintTextMode">Text einfügen, Datei ablegen oder Beispiel laden.</p>
+        </div>
+
+        <div class="dropzone" id="fileDrop">
+          <input type="file" id="fileInput" class="file-input" accept=".txt,.csv,.tsv,text/plain,text/csv" data-i18n-aria-label="labelFile">
+          <span data-i18n="dropHint">Datei hierher ziehen oder klicken</span>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-ghost" id="sampleBtn" data-i18n="btnSample">Beispieldaten laden</button>
+          <button type="button" class="btn btn-ghost" id="clearBtn" data-i18n="btnClear">Leeren</button>
+        </div>
+      </div>
+
+      <!-- ─── Spaltenzuordnung (CSV) ─────────────────────────────── -->
+      <div class="panel hidden" id="mappingPanel">
+        <h2 class="panel-title" data-i18n="panelMapping">Spaltenzuordnung</h2>
+        <div class="field">
+          <label for="colLabel" data-i18n="labelColTerm">Begriff</label>
+          <select id="colLabel"></select>
+        </div>
+        <div class="field">
+          <label for="colCount" data-i18n="labelColCount">Häufigkeit</label>
+          <select id="colCount"></select>
+        </div>
+        <div class="field">
+          <label for="colWeight" data-i18n="labelColWeight">Gewicht</label>
+          <select id="colWeight"></select>
+        </div>
+      </div>
+
+      <!-- ─── Textanalyse ────────────────────────────────────────── -->
+      <div class="panel" id="analysisPanel">
+        <h2 class="panel-title" data-i18n="panelAnalysis">Textanalyse</h2>
+        <div class="switch-row">
+          <span id="lblLowercase" data-i18n="toggleLowercase">Kleinschreibung</span>
+          <button type="button" class="switch" id="optLowercase" role="switch" aria-checked="true" aria-labelledby="lblLowercase"></button>
+        </div>
+        <div class="switch-row">
+          <span id="lblStopDe" data-i18n="toggleStopDe">Stoppwörter Deutsch</span>
+          <button type="button" class="switch" id="optStopDe" role="switch" aria-checked="true" aria-labelledby="lblStopDe"></button>
+        </div>
+        <div class="switch-row">
+          <span id="lblStopEn" data-i18n="toggleStopEn">Stoppwörter Englisch</span>
+          <button type="button" class="switch" id="optStopEn" role="switch" aria-checked="true" aria-labelledby="lblStopEn"></button>
+        </div>
+        <div class="switch-row">
+          <span id="lblDropNumbers" data-i18n="toggleDropNumbers">Zahlen ausschließen</span>
+          <button type="button" class="switch" id="optDropNumbers" role="switch" aria-checked="true" aria-labelledby="lblDropNumbers"></button>
+        </div>
+        <div class="field">
+          <label for="optCustomStop" data-i18n="labelCustomStop">Eigene Stoppwörter</label>
+          <input type="text" id="optCustomStop" data-i18n-placeholder="placeholderCustomStop">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="optMinLength" data-i18n="labelMinLength">Mindestlänge</label>
+            <input type="number" id="optMinLength" min="1" max="12" step="1" value="3">
+          </div>
+          <div class="field">
+            <label for="optNgram" data-i18n="labelNgram">Wortgruppen</label>
+            <select id="optNgram">
+              <option value="1" data-i18n="ngram1">Einzelwörter</option>
+              <option value="2" data-i18n="ngram2">Wortpaare</option>
+              <option value="3" data-i18n="ngram3">Dreiergruppen</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="optMaxTerms" data-i18n="labelMaxTerms">Maximale Anzahl Begriffe</label>
+          <input type="range" id="optMaxTerms" min="10" max="300" step="10" value="120">
+          <p class="hint" id="maxTermsHint">120</p>
+        </div>
+      </div>
+
+      <!-- ─── Gewichtung ─────────────────────────────────────────── -->
+      <div class="panel">
+        <h2 class="panel-title" data-i18n="panelWeighting">Gewichtung</h2>
+        <div class="field">
+          <label for="optAlpha" data-i18n="labelAlpha">Nennungen ↔ Priorität</label>
+          <input type="range" id="optAlpha" min="0" max="1" step="0.05" value="0.5">
+          <p class="hint" id="alphaHint"></p>
+        </div>
+        <div class="field">
+          <span class="field-label" id="lblScale" data-i18n="labelScale">Skalierung</span>
+          <div class="segmented" id="scaleSegmented" role="radiogroup" aria-labelledby="lblScale">
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="linear" data-i18n="scaleLinear">Linear</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="true" data-value="sqrt" data-i18n="scaleSqrt">Wurzel</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="log" data-i18n="scaleLog">Log</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="rank" data-i18n="scaleRank">Rang</button>
+          </div>
+          <p class="hint formula" id="formulaHint"></p>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="optMinFont" data-i18n="labelMinFont">Kleinste Schrift</label>
+            <input type="number" id="optMinFont" min="6" max="120" step="1" value="20">
+          </div>
+          <div class="field">
+            <label for="optMaxFont" data-i18n="labelMaxFont">Größte Schrift</label>
+            <input type="number" id="optMaxFont" min="12" max="400" step="2" value="130">
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Layout ─────────────────────────────────────────────── -->
+      <div class="panel">
+        <h2 class="panel-title" data-i18n="panelLayout">Layout</h2>
+        <div class="field">
+          <label for="optShape" data-i18n="labelShape">Form</label>
+          <select id="optShape">
+            <option value="rect" data-i18n="shapeRect">Rechteck</option>
+            <option value="ellipse" data-i18n="shapeEllipse">Ellipse</option>
+            <option value="circle" data-i18n="shapeCircle">Kreis</option>
+            <option value="heart" data-i18n="shapeHeart">Herz</option>
+            <option value="star" data-i18n="shapeStar">Stern</option>
+            <option value="diamond" data-i18n="shapeDiamond">Raute</option>
+            <option value="arch" data-i18n="shapeArch">Bogen</option>
+            <option value="image" data-i18n="shapeImage">Eigene Bildmaske</option>
+          </select>
+        </div>
+        <div class="field hidden" id="maskField">
+          <div class="dropzone" id="maskDrop">
+            <input type="file" id="maskInput" class="file-input" accept="image/*" data-i18n-aria-label="labelMaskImage">
+            <span data-i18n="dropHintImage">Bild hierher ziehen oder klicken</span>
+          </div>
+          <label for="optMaskThreshold" data-i18n="labelMaskThreshold">Schwellwert</label>
+          <input type="range" id="optMaskThreshold" min="0.05" max="0.95" step="0.05" value="0.5">
+          <div class="switch-row">
+            <span id="lblMaskInvert" data-i18n="toggleMaskInvert">Maske umkehren</span>
+            <button type="button" class="switch" id="optMaskInvert" role="switch" aria-checked="false" aria-labelledby="lblMaskInvert"></button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label" id="lblRotation" data-i18n="labelRotation">Rotation</span>
+          <div class="segmented" id="rotationSegmented" role="radiogroup" aria-labelledby="lblRotation">
+            <button type="button" class="segmented-btn" role="radio" aria-checked="true" data-value="none" data-i18n="rotNone">Keine</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="right" data-i18n="rotRight">0/90°</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="mixed" data-i18n="rotMixed">±60°</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="free" data-i18n="rotFree">Frei</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="optPadding" data-i18n="labelPadding">Wortabstand</label>
+          <input type="range" id="optPadding" min="0" max="12" step="1" value="2">
+          <p class="hint" id="paddingHint">2 px</p>
+        </div>
+        <div class="field">
+          <span class="field-label" id="lblRatio" data-i18n="labelRatio">Seitenverhältnis</span>
+          <div class="segmented" id="ratioSegmented" role="radiogroup" aria-labelledby="lblRatio">
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="1:1">1:1</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="true" data-value="4:3">4:3</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="16:9">16:9</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="4:5">4:5</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="9:16">9:16</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="optSeed" data-i18n="labelSeed">Seed</label>
+          <div class="row">
+            <input type="text" id="optSeed" value="wordler">
+            <button type="button" class="btn btn-ghost" id="rerollBtn" data-i18n="btnReroll">Neu würfeln</button>
+          </div>
+          <p class="hint" data-i18n="hintSeed">Gleicher Seed und gleiche Einstellungen ergeben immer dasselbe Bild.</p>
+        </div>
+      </div>
+
+      <!-- ─── Design ─────────────────────────────────────────────── -->
+      <div class="panel">
+        <h2 class="panel-title" data-i18n="panelDesign">Design</h2>
+        <div class="grid-2">
+          <div class="field">
+            <label for="optFont" data-i18n="labelFont">Schrift</label>
+            <select id="optFont">
+              <option value="Inter">Inter</option>
+              <option value="Georgia, 'Times New Roman', serif" data-i18n="fontSerif">Serif</option>
+              <option value="'Courier New', monospace" data-i18n="fontMono">Monospace</option>
+              <option value="'Arial Narrow', 'Helvetica Neue', sans-serif" data-i18n="fontCondensed">Schmal</option>
+              <option value="Verdana, Geneva, sans-serif" data-i18n="fontWide">Breit</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="optWeight" data-i18n="labelWeight">Schnitt</label>
+            <select id="optWeight">
+              <option value="500" data-i18n="weightMedium">Medium</option>
+              <option value="700" selected data-i18n="weightBold">Fett</option>
+              <option value="800" data-i18n="weightBlack">Extrafett</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="optCase" data-i18n="labelCase">Schreibweise</label>
+            <select id="optCase">
+              <option value="original" data-i18n="caseOriginal">Original</option>
+              <option value="upper" data-i18n="caseUpper">GROSS</option>
+              <option value="lower" data-i18n="caseLower">klein</option>
+              <option value="title" data-i18n="caseTitle">Wortanfänge</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="optPalette" data-i18n="labelPalette">Palette</label>
+            <select id="optPalette"></select>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label" id="lblColorMode" data-i18n="labelColorMode">Farbzuordnung</span>
+          <div class="segmented" id="colorModeSegmented" role="radiogroup" aria-labelledby="lblColorMode">
+            <button type="button" class="segmented-btn" role="radio" aria-checked="true" data-value="score" data-i18n="colorScore">Nach Score</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="rank" data-i18n="colorRank">Nach Rang</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="random" data-i18n="colorRandom">Zufällig</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="single" data-i18n="colorSingle">Einfarbig</button>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="optSingleColor" data-i18n="labelSingleColor">Wortfarbe</label>
+            <input type="color" id="optSingleColor" value="#f5f6f8">
+          </div>
+          <div class="field">
+            <label for="optBackground" data-i18n="labelBackground">Hintergrund</label>
+            <select id="optBackground">
+              <option value="solid" data-i18n="bgSolid">Farbe</option>
+              <option value="gradient" data-i18n="bgGradient">Verlauf</option>
+              <option value="transparent" data-i18n="bgTransparent">Transparent</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="optBgColor" data-i18n="labelBgColor">Hintergrundfarbe</label>
+            <input type="color" id="optBgColor" value="#0e1016">
+          </div>
+          <div class="field" id="bgColor2Field">
+            <label for="optBgColor2" data-i18n="labelBgColor2">Zweite Farbe</label>
+            <input type="color" id="optBgColor2" value="#1b1440">
+          </div>
+        </div>
+        <div class="field">
+          <label for="optTitle" data-i18n="labelTitle">Titel</label>
+          <input type="text" id="optTitle" maxlength="70" data-i18n-placeholder="placeholderTitle">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="optSubtitle" data-i18n="labelSubtitle">Untertitel</label>
+            <input type="text" id="optSubtitle" maxlength="90">
+          </div>
+          <div class="field">
+            <label for="optSource" data-i18n="labelSource">Quellenzeile</label>
+            <input type="text" id="optSource" maxlength="90">
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Begriffe ───────────────────────────────────────────── -->
+      <div class="panel">
+        <div class="panel-title-row">
+          <h2 class="panel-title" data-i18n="panelTerms">Begriffe</h2>
+          <button type="button" class="link-btn" id="termsToggle" aria-expanded="false" aria-controls="termsBody" data-i18n="btnShow">Anzeigen</button>
+        </div>
+        <div id="termsBody" class="hidden">
+          <p class="hint" data-i18n="hintTerms">Abgewählte Begriffe verschwinden aus der Wolke und aus der Gewichtung.</p>
+          <div class="table-wrap">
+            <table class="terms-table">
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="thUse">Nutzen</th>
+                  <th scope="col" data-i18n="thTerm">Begriff</th>
+                  <th scope="col" class="num" data-i18n="thCount">Anzahl</th>
+                  <th scope="col" class="num" data-i18n="thWeight">Gewicht</th>
+                  <th scope="col" class="num" data-i18n="thScore">Score</th>
+                </tr>
+              </thead>
+              <tbody id="termsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Export ─────────────────────────────────────────────── -->
+      <div class="panel">
+        <h2 class="panel-title" data-i18n="panelExport">Export</h2>
+        <div class="field">
+          <span class="field-label" id="lblFormat" data-i18n="labelFormat">Format</span>
+          <div class="segmented" id="formatSegmented" role="radiogroup" aria-labelledby="lblFormat">
+            <button type="button" class="segmented-btn" role="radio" aria-checked="true" data-value="png">PNG</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="jpeg">JPEG</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="webp">WebP</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="svg">SVG</button>
+          </div>
+        </div>
+        <div class="field">
+          <span class="field-label" id="lblScaleFactor" data-i18n="labelScaleFactor">Auflösung</span>
+          <div class="segmented" id="scaleFactorSegmented" role="radiogroup" aria-labelledby="lblScaleFactor">
+            <button type="button" class="segmented-btn" role="radio" aria-checked="true" data-value="1">1×</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="2">2×</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="3">3×</button>
+            <button type="button" class="segmented-btn" role="radio" aria-checked="false" data-value="4">4×</button>
+          </div>
+          <p class="hint" id="exportSizeHint"></p>
+        </div>
+        <div class="field hidden" id="qualityField">
+          <label for="optQuality" data-i18n="labelQuality">Qualität</label>
+          <input type="range" id="optQuality" min="0.4" max="1" step="0.05" value="0.92">
+          <p class="hint" id="qualityHint">92 %</p>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-primary" id="downloadBtn" data-i18n="btnDownload">Bild speichern</button>
+          <button type="button" class="btn btn-ghost" id="copyBtn" data-i18n="btnCopy">Kopieren</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-ghost" id="presetSaveBtn" data-i18n="btnPresetSave">Einstellungen sichern</button>
+          <div class="dropzone dropzone-compact" id="presetDrop">
+            <input type="file" id="presetInput" class="file-input" accept="application/json,.json" data-i18n-aria-label="btnPresetLoad">
+            <span data-i18n="btnPresetLoad">Einstellungen laden</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="preview" id="preview" tabindex="-1" aria-label="Vorschau" data-i18n-aria-label="ariaPreview">
+      <div class="preview-stage">
+        <canvas id="cloudCanvas" role="img" aria-label="Word Cloud" data-i18n-aria-label="ariaCanvas"></canvas>
+        <div class="preview-empty" id="previewEmpty">
+          <p data-i18n="emptyTitle">Noch keine Daten</p>
+          <p class="hint" data-i18n="emptyHint">Text einfügen, CSV ablegen oder Beispieldaten laden.</p>
+        </div>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <p class="error hidden" id="error" role="alert"></p>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p data-i18n="footerPrivacy">Alles läuft lokal im Browser. Es werden keine Daten übertragen.</p>
+  </footer>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
